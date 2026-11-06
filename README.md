@@ -27,6 +27,10 @@ The live preview matches the DualShock 4 that PadLink presents to macOS. Trigger
 
 While a controller is forwarding, choose **Calibrate Face Buttons**. Press and release each physical face button in order, moving counterclockwise from the bottom: bottom, right, top, left. Guestpad assigns them to Cross, Circle, Triangle, and Square respectively. The mapping saves when you release the fourth button. Calibration pauses game input and rejects duplicate or simultaneous face presses. Cancel keeps the previous mapping.
 
+## Updates
+
+Download Guestpad from [GitHub Releases](https://github.com/Broomm/guestpad/releases) and move it to Applications. Guestpad checks for a new release at launch and periodically while the window is open. When a newer build is available, click **Update to …** to verify, install, and relaunch it. If macOS blocks replacement, the error dialog links to the release for manual installation.
+
 ## Build
 
 Run `./scripts/build.sh` with the Apple command line tools installed. The result is `dist/Guestpad.app`. The script verifies the ad-hoc signature before returning the build. The package uses the macOS SDK and contains no package dependencies.
@@ -36,3 +40,5 @@ Run `swift test --scratch-path .build-cache/swift` with XCTest available to chec
 Run `./scripts/package.sh` to build a ZIP and SHA-256 checksum in `dist/`. The packager extracts the ZIP and verifies the app signature before placing it in `dist/`.
 
 The [macOS workflow](.github/workflows/macos.yml) runs the Swift tests on Apple Silicon, builds the app, and uploads the ZIP and checksum as the `Guestpad-macOS-arm64` artifact. The artifact is an ad-hoc signed preview. Parsec and PadLink are separate runtime prerequisites for manual integration testing.
+
+Push a tag such as `v0.4.0` to publish the verified ZIP and checksum to GitHub Releases. The tag must match `CFBundleShortVersionString` in `scripts/build.sh`.

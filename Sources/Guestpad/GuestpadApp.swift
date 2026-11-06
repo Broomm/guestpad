@@ -130,12 +130,14 @@ final class GuestpadModel: ObservableObject {
 @main
 struct GuestpadApp: App {
     @StateObject private var model = GuestpadModel()
+    @StateObject private var updater = GuestpadUpdateModel()
 
     var body: some Scene {
         Window("Guestpad", id: "main") {
-            GuestpadView(model: model)
+            GuestpadView(model: model, updater: updater)
                 .frame(minWidth: 580, minHeight: 660)
                 .task { await model.refresh() }
+                .task { await updater.monitor() }
         }
         .defaultSize(width: 640, height: 680)
         .windowResizability(.contentMinSize)
@@ -144,6 +146,7 @@ struct GuestpadApp: App {
 
 struct GuestpadView: View {
     @ObservedObject var model: GuestpadModel
+    @ObservedObject var updater: GuestpadUpdateModel
 
     var body: some View {
         ScrollView {
@@ -155,6 +158,13 @@ struct GuestpadView: View {
                         Text("Parsec controller forwarding").foregroundStyle(.secondary)
                     }
                     Spacer()
+                    if updater.installing {
+                        ProgressView().controlSize(.small).accessibilityLabel("Installing update")
+                    } else if let release = updater.available {
+                        Button("Update to \(release.version)") { Task { await updater.install() } }
+                            .help("Install the update and relaunch Guestpad")
+                            .disabled(model.busy)
+                    }
                 }
                 GroupBox {
                     VStack(alignment: .leading, spacing: 9) {
@@ -190,22 +200,31 @@ struct GuestpadView: View {
                 }
                 HStack {
                     Button("Refresh") { Task { await model.refresh() } }
-                        .disabled(model.busy || model.running)
+                        .disabled(model.busy || model.running || updater.installing)
                     Spacer()
                     if model.parsec?.prepared == false {
                         Button("Prepare Parsec…") { model.confirmPrepare = true }
-                            .buttonStyle(.borderedProminent).disabled(model.busy)
+                            .buttonStyle(.borderedProminent).disabled(model.busy || updater.installing)
                     } else if model.running {
                         Button("Stop Forwarding") { model.stop() }.disabled(model.busy)
                     } else {
                         Button("Start Forwarding") { Task { await model.start() } }
                             .buttonStyle(.borderedProminent)
-                            .disabled(model.busy || model.parsec == nil || !model.padLinkReady)
+                            .disabled(model.busy || updater.installing || model.parsec == nil || !model.padLinkReady)
                     }
                 }
                 Text("After preparation, open Parsec normally. Start or stop forwarding anytime.")
                     .font(.caption).foregroundStyle(.secondary)
             }.padding(24)
+        }
+        .alert("Couldn’t update Guestpad", isPresented: Binding(
+            get: { updater.installError != nil },
+            set: { if !$0 { updater.installError = nil } }
+        )) {
+            Button("Open GitHub Releases") { NSWorkspace.shared.open(GuestpadUpdates.releasesPage) }
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(updater.installError ?? "")
         }
         .confirmationDialog("Prepare the installed Parsec app?", isPresented: $model.confirmPrepare, titleVisibility: .visible) {
             Button("Prepare Parsec") { Task { await model.prepare() } }
