@@ -1,0 +1,13 @@
+.build/
+.build-cache/
+dist/
+.research/
+.DS_Store
+*.mobileprovision
+*.provisionprofile
+*.p12
+
+# Local experiments and device traces.
+/docs/evidence/
+/Native/Guestpad.entitlements
+/Native/HIDProbe.swift

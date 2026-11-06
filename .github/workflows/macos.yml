@@ -1,0 +1,49 @@
+name: macOS
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test and package (Apple Silicon)
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify toolchain
+        run: |
+          test "$(uname -m)" = arm64
+          xcodebuild -version
+          swift --version
+
+      - name: Run Swift tests
+        run: swift test --scratch-path .build-cache/swift -c release
+
+      - name: Build and verify app archive
+        run: ./scripts/package.sh
+
+      - name: Upload macOS build
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Guestpad-macOS-arm64
+          path: |
+            dist/Guestpad-*-macOS-arm64.zip
+            dist/Guestpad-*-macOS-arm64.zip.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
