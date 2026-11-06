@@ -152,7 +152,10 @@ struct GuestpadView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 HStack(spacing: 12) {
-                    Image(systemName: "gamecontroller.fill").font(.system(size: 29)).foregroundStyle(.tint)
+                    GuestpadGlyph()
+                        .fill(.tint, style: FillStyle(eoFill: true))
+                        .frame(width: 42, height: 30)
+                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Guestpad").font(.largeTitle.bold())
                         Text("Parsec controller forwarding").foregroundStyle(.secondary)

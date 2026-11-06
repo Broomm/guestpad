@@ -10,6 +10,7 @@ bin="$(swift build --scratch-path .build-cache/swift -c release --show-bin-path)
 app=dist/Guestpad.app
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 install -m 0755 "$bin/Guestpad" "$app/Contents/MacOS/Guestpad"
+install -m 0644 Assets/Guestpad.icns "$app/Contents/Resources/Guestpad.icns"
 xcrun clang -arch arm64 -mmacosx-version-min=15.0 -dynamiclib -O2 \
   -I Sources/GuestpadNative/include Native/ReceiveBridge.c Native/ReceiveHook.S \
   -o "$app/Contents/Resources/libGuestpadReceive.dylib"
@@ -20,9 +21,10 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleIdentifier</key><string>app.guestpad.Guestpad</string>
 <key>CFBundleExecutable</key><string>Guestpad</string>
 <key>CFBundleName</key><string>Guestpad</string>
+<key>CFBundleIconFile</key><string>Guestpad.icns</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.4.0</string>
-<key>CFBundleVersion</key><string>7</string>
+<key>CFBundleShortVersionString</key><string>0.4.1</string>
+<key>CFBundleVersion</key><string>8</string>
 <key>LSMinimumSystemVersion</key><string>15.0</string>
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
